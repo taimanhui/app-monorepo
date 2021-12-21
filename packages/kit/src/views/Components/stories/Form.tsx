@@ -9,6 +9,7 @@ type FormValues = {
   agreement: boolean;
   isDev: boolean;
   options: string;
+  url: string;
 };
 
 const FormGallery = () => {
@@ -54,6 +55,33 @@ const FormGallery = () => {
           <Form.Textarea placeholder="textarea" />
         </Form.Item>
         <Form.Item
+          name="url"
+          control={control}
+          label="rpcUrl"
+          defaultValue="https://rpc.onekey.so/eth"
+        >
+          <Form.Select
+            containerProps={{
+              width: '280px',
+              zIndex: 99999,
+            }}
+            options={[
+              {
+                label: 'https://google.com',
+                value: 'https://google.com',
+              },
+              {
+                label: 'https://rpc.onekey.so/eth',
+                value: 'https://rpc.onekey.so/eth',
+              },
+              {
+                label: 'https://baidu.com',
+                value: 'https://baidu.com',
+              },
+            ]}
+          ></Form.Select>
+        </Form.Item>
+        <Form.Item
           label=""
           control={control}
           name="agreement"
@@ -81,6 +109,33 @@ const FormGallery = () => {
             <Form.Radio value="B" title="B" />
             <Form.Radio value="C" title="C" />
           </Form.RadioGroup>
+        </Form.Item>
+        <Form.Item
+          name="url"
+          control={control}
+          label="rpcUrl"
+          defaultValue="https://rpc.onekey.so/eth"
+        >
+          <Form.Select
+            containerProps={{
+              width: '280px',
+              zIndex: 999,
+            }}
+            options={[
+              {
+                label: 'https://google.com',
+                value: 'https://google.com',
+              },
+              {
+                label: 'https://rpc.onekey.so/eth',
+                value: 'https://rpc.onekey.so/eth',
+              },
+              {
+                label: 'https://baidu.com',
+                value: 'https://baidu.com',
+              },
+            ]}
+          ></Form.Select>
         </Form.Item>
         <Button mt="2" onPress={onSubmit}>
           Submit
