@@ -2,24 +2,36 @@ import React, { ComponentProps, FC, useCallback, useState } from 'react';
 
 import Input from '../Input';
 
-// type SearchbarProps = {};
+type SearchbarProps = {
+  onClear?: () => void;
+  onChangeText?: (text: string) => void;
+};
 
-const Searchbar: FC<ComponentProps<typeof Input>> = ({ ...props }) => {
-  const [value, setValue] = useState('');
-  const rightIconName = value ? 'CloseCircleSolid' : undefined;
-  const onPressRightIcon = useCallback(() => {
-    setValue('');
-  }, []);
+const Searchbar: FC<
+  Omit<ComponentProps<typeof Input>, 'onChange' | 'onChangeText'> &
+    SearchbarProps
+> = ({ value, onClear, onChangeText, ...props }) => {
+  const [innerValue, setInnerValue] = useState(value);
+  const rightIconName = innerValue || value ? 'CloseCircleSolid' : undefined;
+  const handleChangeText = useCallback(
+    (text: string) => {
+      if (typeof value === 'undefined') {
+        setInnerValue(text);
+      } else if (typeof onChangeText !== 'undefined') {
+        onChangeText(text);
+      }
+    },
+    [value, onChangeText],
+  );
+
   return (
     <Input
-      value={value}
+      value={value ?? innerValue}
       leftIconName="SearchOutline"
       rightIconName={rightIconName}
       placeholder="Search..."
-      onPressRightIcon={onPressRightIcon}
-      onChange={(e) => {
-        setValue(e.nativeEvent.text);
-      }}
+      onPressRightIcon={onClear}
+      onChangeText={handleChangeText}
       {...props}
     />
   );
