@@ -13,7 +13,7 @@ const TextArea = React.forwardRef<
     isInvalid={isInvalid}
     borderColor="border-default"
     bg="action-secondary-default"
-    borderRadius={12}
+    borderRadius="12"
     color="text-default"
     _focus={{
       borderColor: isInvalid ? 'border-critical-default' : 'focused-default',
@@ -30,6 +30,7 @@ const TextArea = React.forwardRef<
     _invalid={{
       borderColor: 'border-critical-default',
     }}
+    shadow='depth.01'
     {...props}
   />
 ));

@@ -4,6 +4,7 @@ import { Button as NativeBaseButton } from 'native-base';
 
 import Icon, { ICON_NAMES } from '../Icon';
 import { Spinner } from '../Spinner';
+import Typography from '../Typography'
 
 export type ButtonSize = 'base' | 'xs' | 'sm' | 'lg' | 'xl';
 export type ButtonType =
@@ -24,6 +25,17 @@ type ButtonPropsWithoutType = {
 };
 
 export type ButtonProps = ButtonPropsWithoutType & { type?: ButtonType };
+
+const getTypography = (size:  ButtonSize = 'base') => {
+  const typographyMap = {
+    'xs': Typography.CaptionStrong,
+    'sm': Typography.Button2,
+    'base': Typography.Button2,
+    'lg': Typography.Button1,
+    'xl': Typography.Button1,
+  }
+  return typographyMap[size]
+}
 
 const getPadding = (size: ButtonSize = 'base'): [number, number] => {
   const sizeMap: Record<ButtonSize, [number, number]> = {
@@ -83,6 +95,7 @@ const BasicButton: FC<ButtonPropsWithoutType> = ({
       color={isDisabled ? 'icon-disabled' : 'icon-default'}
     />
   ) : undefined;
+  const TextTypography = getTypography(size)
   return (
     <NativeBaseButton
       isDisabled={isDisabled || isLoading}
@@ -94,7 +107,7 @@ const BasicButton: FC<ButtonPropsWithoutType> = ({
       bg="action-secondary-default"
       borderWidth="1"
       borderColor="border-default"
-      _text={{ color: 'text-default', fontSize }}
+      // _text={{ color: 'text-default', fontSize }}
       _hover={{
         bg: 'action-secondary-hovered',
         borderColor: 'border-default',
@@ -112,10 +125,10 @@ const BasicButton: FC<ButtonPropsWithoutType> = ({
         borderColor: 'border-disabled',
       }}
       spinner={<Spinner size="sm" />}
-      shadow="1"
+      shadow={(isDisabled||isLoading)?undefined:'depth.01'}
       {...props}
     >
-      {children}
+      <TextTypography color='text-default'>{children}</TextTypography>
     </NativeBaseButton>
   );
 };
@@ -145,6 +158,7 @@ const PrimaryButton: FC<ButtonPropsWithoutType> = ({
       color={isDisabled ? 'icon-disabled' : 'icon-on-primary'}
     />
   ) : undefined;
+  const TextTypography = getTypography(size)
   return (
     <NativeBaseButton
       isDisabled={isDisabled || isLoading}
@@ -153,18 +167,20 @@ const PrimaryButton: FC<ButtonPropsWithoutType> = ({
       rightIcon={rightIcon}
       borderRadius="12"
       variant="solid"
-      shadow="1"
-      _text={{ color: 'text-on-primary', fontSize }}
+      borderWidth="1"
+      borderColor="action-primary-default"
+      // _text={{ color: 'text-on-primary', fontSize }}
       bg="action-primary-default"
       _hover={{ bg: 'action-primary-hovered' }}
       _focus={{ bg: 'action-primary-default' }}
       _pressed={{ bg: 'action-primary-hovered' }}
-      _loading={{ bg: 'action-primary-disabled' }}
-      _disabled={{ bg: 'action-primary-disabled', color: 'text-disabled' }}
+      _loading={{ bg: 'action-primary-disabled', borderColor: 'action-primary-disabled' }}
+      _disabled={{ bg: 'action-primary-disabled', borderColor: 'action-primary-disabled', color: 'text-disabled' }}
+      shadow={(isDisabled||isLoading)?undefined:'depth.01'}
       spinner={<Spinner size="sm" />}
       {...props}
     >
-      {children}
+      <TextTypography color='text-on-primary'>{children}</TextTypography>
     </NativeBaseButton>
   );
 };
@@ -194,15 +210,16 @@ const PlainButton: FC<ButtonPropsWithoutType> = ({
       color={isDisabled ? 'icon-disabled' : 'icon-default'}
     />
   ) : undefined;
+  const TextTypography = getTypography(size)
   return (
     <NativeBaseButton
-      isDisabled={isDisabled}
+      isDisabled={isDisabled||isLoading}
       isLoading={isLoading}
       leftIcon={leftIcon}
       rightIcon={rightIcon}
       borderRadius="12"
       variant="ghost"
-      _text={{ color: 'text-default', fontSize }}
+      // _text={{ color: 'text-default', fontSize }}
       _hover={{ bg: 'surface-hovered' }}
       _pressed={{ bg: undefined }}
       _focus={{ bg: undefined }}
@@ -210,7 +227,7 @@ const PlainButton: FC<ButtonPropsWithoutType> = ({
       spinner={<Spinner size="sm" />}
       {...props}
     >
-      {children}
+      <TextTypography color='text-default'>{children}</TextTypography>
     </NativeBaseButton>
   );
 };
@@ -240,6 +257,7 @@ const DestructiveButton: FC<ButtonPropsWithoutType> = ({
       color={isDisabled ? 'icon-disabled' : 'icon-on-critical'}
     />
   ) : undefined;
+  const TextTypography = getTypography(size)
   return (
     <NativeBaseButton
       isDisabled={isDisabled || isLoading}
@@ -248,13 +266,16 @@ const DestructiveButton: FC<ButtonPropsWithoutType> = ({
       rightIcon={rightIcon}
       borderRadius="12"
       variant="solid"
+      borderWidth='1'
+      borderColor='action-critical-default'
       bg="action-critical-default"
       _hover={{ bg: 'action-critical-hovered' }}
-      _disabled={{ bg: 'action-critical-disabled' }}
-      _text={{
-        color: 'text-on-critical',
-        fontSize,
-      }}
+      _loading={{ bg: 'action-critical-disabled', borderColor: 'action-critical-disabled' }}
+      _disabled={{ bg: 'action-critical-disabled', borderColor: 'action-critical-disabled' }}
+      // _text={{
+      //   color: 'text-on-critical',
+      //   fontSize,
+      // }}
       _focus={{
         bg: 'action-critical-hovered',
       }}
@@ -263,10 +284,10 @@ const DestructiveButton: FC<ButtonPropsWithoutType> = ({
       }}
       _spinner={{ size: iconSize }}
       spinner={<Spinner size="sm" />}
-      shadow="1"
+      shadow={(isDisabled||isLoading)?undefined:'depth.01'}
       {...props}
     >
-      {children}
+      <TextTypography color='text-on-critical'>{children}</TextTypography>
     </NativeBaseButton>
   );
 };
@@ -282,6 +303,7 @@ const OutlineButton: FC<ButtonPropsWithoutType> = ({
   ...props
 }) => {
   const fontSize = getFontSize(size);
+  const TextTypography = getTypography(size)
   const leftIcon = leftIconName ? (
     <Icon
       size={iconSize}
@@ -306,7 +328,7 @@ const OutlineButton: FC<ButtonPropsWithoutType> = ({
       variant="outline"
       borderWidth="1"
       borderColor="border-critical-default"
-      _text={{ color: 'text-critical', fontSize }}
+      // _text={{ color: 'text-critical', fontSize }}
       _focus={{ bg: undefined, borderColor: 'border-critical-default' }}
       _pressed={{ bg: undefined, borderColor: 'border-critical-default' }}
       _hover={{
@@ -322,10 +344,10 @@ const OutlineButton: FC<ButtonPropsWithoutType> = ({
         _text: { color: 'text-disabled' },
       }}
       spinner={<Spinner size="sm" />}
-      shadow="1"
+      shadow={(isDisabled||isLoading)?undefined:'depth.01'}
       {...props}
     >
-      {children}
+      <TextTypography color='text-critical'>{children}</TextTypography>
     </NativeBaseButton>
   );
 };

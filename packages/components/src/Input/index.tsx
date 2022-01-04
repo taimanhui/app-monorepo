@@ -66,7 +66,7 @@ const Input = React.forwardRef<
       leftElements.push(
         <Pressable ml="2" onPress={onPressLeftIcon} key="leftIconName">
           <Icon
-            size={16}
+            size={20}
             name={leftIconName}
             color={isDisabled ? 'text-disabled' : 'text-subdued'}
           />
@@ -90,7 +90,7 @@ const Input = React.forwardRef<
       rightElements.push(
         <Pressable mr="2" onPress={onPressRightIcon} key="rightIconName">
           <Icon
-            size={16}
+            size={20}
             name={rightIconName}
             color={isDisabled ? 'text-disabled' : 'text-subdued'}
           />
@@ -122,7 +122,7 @@ const Input = React.forwardRef<
           key="rightSecondaryIconName"
         >
           <Icon
-            size={16}
+            size={20}
             name={rightSecondaryIconName}
             color={isDisabled ? 'text-disabled' : 'text-subdued'}
           />
@@ -142,7 +142,7 @@ const Input = React.forwardRef<
         borderRadius="12"
         fontSize={fontSize}
         py="2"
-        px="2"
+        px="3"
         _disabled={{
           bg: 'action-secondary-disabled',
           borderColor: 'border-disabled',
