@@ -19,6 +19,8 @@ import {
   SendTokenRoutesParams,
 } from '@onekeyhq/kit/src/routes/Modal/SendToken';
 
+import { useAppSelector } from '../../../hooks/redux';
+
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type NavigationProps = NativeStackNavigationProp<
@@ -35,6 +37,8 @@ const AccountInfo = () => {
   const intl = useIntl();
   const navigation = useNavigation<NavigationProps>();
 
+  const { totalBalance } = useAppSelector((s) => s.account);
+
   const renderAccountAmountInfo = useCallback(
     (isCenter: boolean) => (
       <Box alignItems={isCenter ? 'center' : 'flex-start'} mt={8}>
@@ -42,13 +46,17 @@ const AccountInfo = () => {
           {intl.formatMessage({ id: 'asset__total_balance' }).toUpperCase()}
         </Typography.Subheading>
         <Box flexDirection="row" mt={2}>
-          <Typography.DisplayXLarge>10.100</Typography.DisplayXLarge>
-          <Typography.DisplayXLarge pl={2}>ETH</Typography.DisplayXLarge>
+          <Typography.DisplayXLarge>
+            {totalBalance.total}
+          </Typography.DisplayXLarge>
+          <Typography.DisplayXLarge pl={2}>
+            {totalBalance.unit}
+          </Typography.DisplayXLarge>
         </Box>
-        <Typography.Body2 mt={1}>43123.12 USD</Typography.Body2>
+        <Typography.Body2 mt={1}>{totalBalance.fiatTotal}</Typography.Body2>
       </Box>
     ),
-    [intl],
+    [intl, totalBalance],
   );
 
   const accountOption = useMemo(
