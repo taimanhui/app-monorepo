@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from 'react';
+import React, { ComponentProps, FC, useEffect, useState } from 'react';
 
 import { useNavigation } from '@react-navigation/native';
 import { useIntl } from 'react-intl';
@@ -12,8 +12,8 @@ import {
   Empty,
   Icon,
   Pressable,
-  ScrollableSectionList,
   ScrollableSectionListProps,
+  SectionList,
   Typography,
 } from '@onekeyhq/components';
 import { ModalTypes } from '@onekeyhq/kit/src/routes';
@@ -22,7 +22,6 @@ import { TransactionDetailModalRoutes } from '@onekeyhq/kit/src/routes/Modal/Tra
 import { formatMonth } from '../../../utils/DateUtils';
 import TransactionRecord, {
   Transaction,
-  getTransactionStatusStr,
 } from '../../Components/transactionRecord';
 
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -145,12 +144,18 @@ const toTransactionSection = (_data: Transaction[]): TransactionGroup[] => {
   }, []);
 };
 
-const HistoricalRecords = () => {
+export type HistoricalRecordProps = {
+  isTab?: boolean;
+};
+
+const defaultProps = {
+  isTab: false,
+} as const;
+
+const HistoricalRecords: FC<HistoricalRecordProps> = ({ isTab }) => {
   const intl = useIntl();
   const navigation =
     useNavigation<ModalTransactionDetailScreenNavigationProp>();
-  const [detailsVisible, setDetailsVisible] = useState(false);
-  const [detailsInfo, setDetailsInfo] = useState<Transaction>();
   const [transactionRecords, setTransactionRecords] = useState<
     TransactionGroup[]
   >([]);
@@ -169,8 +174,6 @@ const HistoricalRecords = () => {
       borderTopRadius={index === 0 ? '12px' : '0px'}
       borderRadius={index === section.data.length - 1 ? '12px' : '0px'}
       onPress={() => {
-        setDetailsInfo(item);
-
         navigation.navigate(
           TransactionDetailModalRoutes.TransactionDetailModal,
           {
@@ -239,20 +242,26 @@ const HistoricalRecords = () => {
     </Box>
   );
 
-  return (
-    <Tabs.SectionList
-      contentContainerStyle={{ paddingHorizontal: 16, marginTop: 16 }}
-      sections={transactionRecords}
-      renderItem={renderItem}
-      renderSectionHeader={renderSectionHeader}
-      ListHeaderComponent={renderHeader}
-      ListEmptyComponent={renderEmpty}
-      ListFooterComponent={() => <Box h="20px" />}
-      ItemSeparatorComponent={() => <Divider />}
-      keyExtractor={(_, index: number) => index.toString()}
-      showsVerticalScrollIndicator={false}
-    />
-  );
+  let listElementType: JSX.Element;
+  if (isTab) {
+    listElementType = <Tabs.SectionList sections={[]} />;
+  } else {
+    listElementType = <SectionList sections={[]} />;
+  }
+
+  return React.cloneElement(listElementType, {
+    contentContainerStyle: { paddingHorizontal: 16, marginTop: 16 },
+    sections: transactionRecords,
+    renderItem,
+    renderSectionHeader,
+    ListHeaderComponent: renderHeader(),
+    ListEmptyComponent: renderEmpty(),
+    ListFooterComponent: () => <Box h="20px" />,
+    ItemSeparatorComponent: () => <Divider />,
+    keyExtractor: (_: Transaction, index: number) => index.toString(),
+    showsVerticalScrollIndicator: false,
+  });
 };
 
+HistoricalRecords.defaultProps = defaultProps;
 export default HistoricalRecords;

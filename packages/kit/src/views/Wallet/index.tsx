@@ -53,7 +53,7 @@ const Home: React.FC = () => {
         <AssetsList />
       </Tabs.Tab>
       <Tabs.Tab name={intl.formatMessage({ id: 'transaction__history' })}>
-        <HistoricalRecord />
+        <HistoricalRecord isTab />
       </Tabs.Tab>
     </Tabs.Container>
   );
