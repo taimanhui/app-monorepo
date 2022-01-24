@@ -8,7 +8,7 @@ import {
   revealableSeedFromMnemonic,
 } from '@onekeyhq/blockchain-libs/dist/secret';
 
-import { IMPL_EVM } from './constants';
+import { IMPL_EVM, IMPL_SOL } from './constants';
 import { DbApi } from './db';
 import { DBAPI } from './db/base';
 import { NotImplemented, OneKeyInternalError } from './errors';
@@ -498,9 +498,11 @@ class Engine {
 
   listNetworks(enabledOnly = true): Promise<Map<string, Array<NetworkShort>>> {
     return this.dbApi.listNetworks().then((networks: Array<DBNetwork>) => {
-      const ret: Map<string, Array<NetworkShort>> = new Map(
-        [[IMPL_EVM, []]], // TODO: other implemetations
-      );
+      const ret: Map<string, Array<NetworkShort>> = new Map([
+        [IMPL_EVM, []],
+        [IMPL_SOL, []],
+        // TODO: other implemetations
+      ]);
       networks.forEach((network) => {
         if (enabledOnly && !network.enabled) {
           return;
