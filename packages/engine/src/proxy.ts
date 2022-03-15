@@ -18,6 +18,7 @@ import {
   ClientFilter,
 } from '@onekeyfe/blockchain-libs/dist/provider/abc';
 import { Algod } from '@onekeyfe/blockchain-libs/dist/provider/chains/algo/algod';
+import { BlockBook } from '@onekeyfe/blockchain-libs/dist/provider/chains/btc/blockbook';
 import { Geth } from '@onekeyfe/blockchain-libs/dist/provider/chains/eth/geth';
 import { NearCli } from '@onekeyfe/blockchain-libs/dist/provider/chains/near/nearcli';
 import { Solana } from '@onekeyfe/blockchain-libs/dist/provider/chains/sol/solana';
@@ -28,8 +29,12 @@ import {
   sign,
   uncompressPublicKey,
 } from '@onekeyfe/blockchain-libs/dist/secret';
-import { ChainInfo } from '@onekeyfe/blockchain-libs/dist/types/chain';
 import {
+  ChainInfo,
+  CoinInfo,
+} from '@onekeyfe/blockchain-libs/dist/types/chain';
+import {
+  AddressValidation,
   TransactionStatus,
   TxInput,
   UnsignedTx,
@@ -40,9 +45,11 @@ import {
 } from '@onekeyfe/blockchain-libs/dist/types/secret';
 import { IJsonRpcRequest } from '@onekeyfe/cross-inpage-provider-types';
 import BigNumber from 'bignumber.js';
+import bs58check from 'bs58check';
 
 import {
   IMPL_ALGO,
+  IMPL_BTC,
   IMPL_CFX,
   IMPL_EVM,
   IMPL_NEAR,
@@ -58,6 +65,7 @@ import {
   AccountType,
   DBAccount,
   DBSimpleAccount,
+  DBUTXOAccount,
   DBVariantAccount,
 } from './types/account';
 import { CredentialSelector, CredentialType } from './types/credential';
@@ -75,6 +83,7 @@ const IMPL_MAPPINGS: Record<string, string> = {
   [IMPL_NEAR]: 'near',
   [IMPL_STC]: 'stc',
   [IMPL_CFX]: 'cfx',
+  [IMPL_BTC]: 'btc',
 };
 
 type Curve = 'secp256k1' | 'ed25519';
@@ -110,6 +119,10 @@ const IMPL_PROPERTIES: Record<string, ImplProperty> = {
     defaultCurve: 'secp256k1',
     clientProvider: 'Conflux',
   },
+  [IMPL_BTC]: {
+    defaultCurve: 'secp256k1',
+    clientProvider: 'BlockBook',
+  },
 };
 
 function fromDBNetworkToChainInfo(dbNetwork: DBNetwork): ChainInfo {
@@ -129,8 +142,16 @@ function fromDBNetworkToChainInfo(dbNetwork: DBNetwork): ChainInfo {
     const chainId = parseInt(dbNetwork.id.split(SEPERATOR)[1]);
     implOptions = { ...implOptions, chainId };
   }
+  let code = dbNetwork.id;
+  if (dbNetwork.impl === IMPL_BTC) {
+    if (dbNetwork.id === 'bitcoin--0') {
+      code = 'btc';
+    } else if (dbNetwork.id === 'bitcoin--1') {
+      code = 'tbtc';
+    }
+  }
   return {
-    code: dbNetwork.id,
+    code,
     feeCode: dbNetwork.id,
     impl: dbNetwork.impl,
     curve: (dbNetwork.curve as Curve) || implProperties.defaultCurve,
@@ -410,6 +431,33 @@ class ProviderController extends BaseProviderController {
     }
   }
 
+  async verifyAddress(
+    networkId: string,
+    address: string,
+  ): Promise<AddressValidation> {
+    if (getImplFromNetworkId(networkId) === IMPL_BTC) {
+      const provider = (await this.getProvider(networkId)) as unknown as {
+        network: { bip32: { public: number } };
+      };
+      try {
+        const decodedXpub = bs58check.decode(address);
+        if (
+          parseInt(decodedXpub.slice(0, 4).toString('hex'), 16) ===
+          provider.network.bip32.public
+        ) {
+          return await Promise.resolve({
+            normalizedAddress: address,
+            isValid: true,
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+      return Promise.resolve({ isValid: false });
+    }
+    return super.verifyAddress(networkId, address);
+  }
+
   private async selectAccountAddress(
     networkId: string,
     dbAccount: DBAccount,
@@ -425,10 +473,34 @@ class ProviderController extends BaseProviderController {
           address = await this.addressFromBase(networkId, dbAccount.address);
         }
         break;
+      case AccountType.UTXO:
+        address = (dbAccount as DBUTXOAccount).xpub;
+        break;
       default:
         throw new NotImplemented();
     }
     return Promise.resolve(address);
+  }
+
+  async getBalances(
+    networkId: string,
+    requests: Array<{ address: string; coin: Partial<CoinInfo> }>,
+  ): Promise<Array<BigNumber | undefined>> {
+    if (getImplFromNetworkId(networkId) === IMPL_BTC) {
+      const provider = await this.getProvider(networkId);
+      const { restful } = await (
+        provider as unknown as { blockbook: Promise<BlockBook> }
+      ).blockbook;
+      return Promise.all(
+        requests.map((request) =>
+          restful
+            .get(`/api/v2/xpub/${request.address}`, { details: 'basic' })
+            .then((r) => r.json())
+            .then((r: { balance: string }) => new BigNumber(r.balance)),
+        ),
+      );
+    }
+    return super.getBalances(networkId, requests);
   }
 
   async proxyGetBalances(
@@ -822,6 +894,9 @@ async function getRPCStatus(
       break;
     case IMPL_SOL:
       client = new Solana(url);
+      break;
+    case IMPL_BTC:
+      client = new BlockBook(url);
       break;
     default:
       throw new NotImplemented(

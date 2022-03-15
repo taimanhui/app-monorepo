@@ -18,6 +18,8 @@ const COINTYPE_STC = '101010';
 const IMPL_CFX = 'cfx';
 const COINTYPE_CFX = '503';
 
+const IMPL_BTC = 'bitcoin';
+
 const SUPPORTED_IMPLS = new Set([
   IMPL_EVM,
   IMPL_SOL,
@@ -25,6 +27,7 @@ const SUPPORTED_IMPLS = new Set([
   IMPL_NEAR,
   IMPL_STC,
   IMPL_CFX,
+  IMPL_BTC,
 ]);
 
 const PRODUCTION_IMPLS = new Set([IMPL_EVM]);
@@ -50,5 +53,6 @@ export {
   COINTYPE_STC,
   IMPL_CFX,
   COINTYPE_CFX,
+  IMPL_BTC,
   getSupportedImpls,
 };

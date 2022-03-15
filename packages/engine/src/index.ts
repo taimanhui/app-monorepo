@@ -14,7 +14,13 @@ import {
   backgroundMethod,
 } from '@onekeyhq/kit/src/background/decorators';
 
-import { IMPL_EVM, IMPL_SOL, SEPERATOR, getSupportedImpls } from './constants';
+import {
+  IMPL_BTC,
+  IMPL_EVM,
+  IMPL_SOL,
+  SEPERATOR,
+  getSupportedImpls,
+} from './constants';
 import { DbApi } from './dbs';
 import { DBAPI, DEFAULT_VERIFY_STRING, checkPassword } from './dbs/base';
 import {
@@ -556,9 +562,13 @@ class Engine {
       throw new InvalidAddress();
     }
     const impl = getImplFromNetworkId(networkId);
-    const coinType = implToCoinTypes[impl];
+    let coinType = implToCoinTypes[impl];
     if (typeof coinType === 'undefined') {
-      throw new OneKeyInternalError(`Unsupported implementation ${impl}.`);
+      if (impl === IMPL_BTC) {
+        [, coinType] = networkId.split(SEPERATOR);
+      } else {
+        throw new OneKeyInternalError(`Unsupported implementation ${impl}.`);
+      }
     }
     const accountType = implToAccountType[impl];
     if (typeof accountType === 'undefined') {
@@ -570,15 +580,29 @@ class Engine {
       address = await this.providerManager.addressToBase(networkId, address);
     }
 
-    const a = await this.dbApi.addAccountToWallet('watching', {
+    const baseAccount = {
       id: `watching--${coinType}--${address}`,
       name: name || '',
       type: accountType,
       path: '',
       coinType,
-      pub: '', // TODO: only address is supported for now.
-      address,
-    });
+    };
+
+    const a = await this.dbApi.addAccountToWallet(
+      'watching',
+      accountType === AccountType.UTXO
+        ? {
+            ...baseAccount,
+            xpub: normalizedAddress,
+            address: normalizedAddress,
+            addresses: {},
+          }
+        : {
+            ...baseAccount,
+            pub: '', // TODO: only address is supported for now.
+            address,
+          },
+    );
     return this.getAccount(a.id, networkId);
   }
 

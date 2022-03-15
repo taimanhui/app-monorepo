@@ -6,6 +6,7 @@ import {
   COINTYPE_SOL,
   COINTYPE_STC,
   IMPL_ALGO,
+  IMPL_BTC,
   IMPL_CFX,
   IMPL_EVM,
   IMPL_NEAR,
@@ -30,6 +31,7 @@ const implToAccountType: Record<string, AccountType> = {
   [IMPL_NEAR]: AccountType.SIMPLE,
   [IMPL_STC]: AccountType.SIMPLE,
   [IMPL_CFX]: AccountType.VARIANT,
+  [IMPL_BTC]: AccountType.UTXO,
 };
 
 function isCoinTypeCompatibleWithImpl(coinType: string, impl: string): boolean {
